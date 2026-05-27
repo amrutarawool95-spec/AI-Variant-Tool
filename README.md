@@ -121,4 +121,4 @@ This application is containerized with **Docker** for easy deployment to cloud p
 
 ## 🖇️ Link 
 
-{ https://variant-dashboard-tool.onrender.com } 
+https://variant-dashboard-tool.onrender.com
