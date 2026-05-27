@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Variant Prioritization Tool</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 2rem; background: #f4f7f6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Variant Prioritization</h1>
+        <p>Upload a patient VCF and enter HPO terms to retrieve the top 20 disease-causing variants.</p>
+        
+        <form id="analysisForm">
+            <div class="form-group">
+                <label>Patient VCF File (WES/WGS)</label>
+                <input type="file" id="vcfFile" name="vcf" accept=".vcf,.gz" required>
+            </div>
+            <div class="form-group">
+                <label>Clinical Phenotypes (HPO Terms, comma-separated)</label>
+                <input type="text" id="hpoTerms" name="hpo_terms" placeholder="e.g., HP:0001250, HP:0000707" required>
+            </div>
+            <button type="submit">Analyze Variants</button>
+        </form>
+
+        <div id="results" style="display: none;">
+            <h2>Top 20 Ranked Variants</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Chromosome</th>
+                        <th>Position</th>
+                        <th>Ref</th>
+                        <th>Alt</th>
+                        <th>AI Score</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('analysisForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('vcf', document.getElementById('vcfFile').files[0]);
+            formData.append('hpo_terms', document.getElementById('hpoTerms').value);
+
+            const response = await fetch('/analyze', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            data.forEach(variant => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${variant.chrom}</td>
+                        <td>${variant.pos}</td>
+                        <td>${variant.ref}</td>
+                        <td>${variant.alt}</td>
+                        <td><strong>${variant.pathogenicity_score.toFixed(4)}</strong></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('results').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
